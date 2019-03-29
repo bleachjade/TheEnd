@@ -1,6 +1,7 @@
 import arcade.key
 import sys
 from random import randint
+import time
 
 GRAVITY = -1
 MAX_VX = 15
@@ -9,6 +10,11 @@ JUMP_VY = 15
 
 DOT_RADIUS = 40
 BUILDING_MARGIN = 5
+
+ITEM_RADIUS = 32
+ITEM_Y_OFFSET = 20
+ITEM_MARGIN = 12
+ITEM_HIT_MARGIN = 12
 
 class Model:
     def __init__(self, world, x, y, angle):
@@ -56,6 +62,8 @@ class Player(Model):
                 self.building = None
                 self.is_jump = True
                 self.vy = 0
+    def top_y(self):
+        return self.y + (DOT_RADIUS // 2)
 
     def bottom_y(self):
         return self.y - (DOT_RADIUS // 2)
@@ -90,6 +98,11 @@ class Player(Model):
                 return b
         return None
 
+    def die(self):
+        if self.top_y() < 0:
+            return True
+        return False
+
 class Building:
     def __init__(self, world, x, y, width, height):
         self.world = world
@@ -104,6 +117,26 @@ class Building:
     def right_most_x(self):
         return self.x + self.width
 
+    def spawn_items(self):
+        items = []
+        x = self.x + ITEM_MARGIN
+        while x + ITEM_MARGIN <= self.right_most_x():
+            items.append(Item(x, self.y + ITEM_Y_OFFSET,
+                              ITEM_RADIUS, ITEM_RADIUS))
+            x += ITEM_MARGIN + ITEM_RADIUS
+        return items
+
+class Item:
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.is_collected = False
+
+    def hit(self, player):
+        return ((abs(self.x - player.x) < ITEM_HIT_MARGIN) and
+                (abs(self.y - player.y) < ITEM_HIT_MARGIN))
 
 class World:
     STATE_FROZEN = 1
@@ -131,12 +164,29 @@ class World:
             Building(self, 550, 150, 500, 50),
             Building(self, 1100, 100, 500, 50),
         ]
+        self.items = []
+        for b in self.building:
+            self.items += b.spawn_items()
 
     def update(self, delta):
         if self.state in [World.STATE_FROZEN, World.STATE_DEAD]:
             return
         self.player.update(delta)
         self.recycle_building()
+        self.collect_items()
+        self.remove_old_items()
+
+    def collect_items(self):
+        for i in self.items:
+            if (not i.is_collected) and (i.hit(self.player)):
+                i.is_collected = True
+                self.score += 1
+
+    def remove_old_items(self):
+        far_x = self.too_far_left_x()
+        if self.items[0].x >= far_x:
+            return
+        self.items = [i for i in self.items if i.x >= far_x]
 
     def too_far_left_x(self):
         return self.player.x - self.width
@@ -149,6 +199,7 @@ class World:
                 last_x = max([pp.right_most_x() for pp in self.building])
                 p.x = last_x + randint(50, 200)
                 p.y = randint(100, 200)
+                self.items += p.spawn_items()
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.SPACE:
