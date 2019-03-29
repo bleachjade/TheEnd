@@ -12,9 +12,9 @@ DOT_RADIUS = 40
 BUILDING_MARGIN = 5
 
 ITEM_RADIUS = 32
-ITEM_Y_OFFSET = 20
-ITEM_MARGIN = 12
-ITEM_HIT_MARGIN = 12
+ITEM_Y_OFFSET = 25
+ITEM_MARGIN = 13
+ITEM_HIT_MARGIN = 30
 
 class Model:
     def __init__(self, world, x, y, angle):

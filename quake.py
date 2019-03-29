@@ -6,6 +6,15 @@ from models import World
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
+PLAYER_PIC = ['images/player.png',
+              'images/player1.png',
+              'images/player2.png',
+              'images/player3.png',
+              'images/player4.png',
+              'images/player5.png',
+              'images/player6.png',
+              'images/player7.png',]
+
 
 class ModelSprite(arcade.Sprite):
     def __init__(self, *args, **kwargs):
@@ -30,11 +39,24 @@ class PlayerRunWindow(arcade.Window):
 
         self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-        self.player_sprite = ModelSprite('images/player.png',
+        self.cycle = 0
+
+
+        for i in PLAYER_PIC:
+            if i != 3:
+
+                self.player_sprite = ModelSprite(i,
                                       model=self.world.player)
+                self.cycle += 1
+            else:
+                self.cycle = 0
+            # if PLAYER_PIC != 3:
+            #     self.cycle += 1
+            # else:
+            #     self.cycle = 0
 
         self.item_texture = arcade.load_texture('images/item.png')
-        self.platback = arcade.load_texture('images/platback.png')
+        self.platback = arcade.load_texture('images/platback1.png')
         self.background = arcade.load_texture("images/city.jpg")
         #
         # self.pause = False
