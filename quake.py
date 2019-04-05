@@ -2,7 +2,7 @@ import arcade
 import random
 import os
 import time
-from models import World
+from models import World, Player
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -92,13 +92,14 @@ class PlayerRunWindow(arcade.Window):
 
         self.item_texture = arcade.load_texture('images/item.png')
         # self.super_coin = arcade.load_texture('images/super_coin.png')
+        self.start_time = 0
 
     def update(self, delta):
         self.world.update(delta)
         self.player_sprite.update()
         if self.world.player.die():
             self.world.die()
-            self.world.freeze()
+            # self.world.freeze()
 
         if self.world.state == 2:
             if self.start_time == 0:
@@ -152,16 +153,19 @@ class PlayerRunWindow(arcade.Window):
         print(self.world.state)
         if self.world.state == 1:
             return
-        if self.world.state == 3:
+        elif self.world.state == 3:
+            arcade.draw_rectangle_filled(self.player_sprite.center_x, SCREEN_HEIGHT//2, 1500, 130, arcade.color.BRIGHT_GREEN)
+            arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x-190, SCREEN_HEIGHT//2, arcade.color.WHITE, 40)
 
             if self.end_time == 0:
                 self.end_time = time.time() - self.start_time
-            arcade.draw_text(f'time: {self.end_time - self.start_time:.2f}',
-                             self.world.player.x + (SCREEN_WIDTH // 3) - 100,
+            arcade.draw_text(f'time: {self.end_time:.2f}',
+                             self.world.player.x + (SCREEN_WIDTH // 3)-100,
                              self.height - 30,
                              arcade.color.WHITE, 30)
 
         else:
+            print('asbhaaj')
             arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
                              self.world.player.x + (SCREEN_WIDTH // 3) - 100,
                              self.height - 30,

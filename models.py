@@ -102,7 +102,8 @@ class Player(Model):
     def die(self):
         if self.top_y() < 0:
             print('yay')
-            self.world.die()
+            # self.world.die()
+            self.world.state = 3
             return True
         return False
 
@@ -218,7 +219,7 @@ class World:
         return t1
 
     def freeze(self):
-        self.state = World.STATE_FROZEN
+        # self.state = World.STATE_FROZEN
         t2 = time.time()
         return t2
 
