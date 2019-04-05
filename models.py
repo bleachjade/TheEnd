@@ -1,6 +1,6 @@
 import arcade.key
 import sys
-from random import randint
+from random import randint, random
 import time
 
 GRAVITY = -1
@@ -44,6 +44,7 @@ class Player(Model):
             self.vy = JUMP_VY
 
     def update(self, delta):
+        self.die()
         if self.vx < MAX_VX:
             self.vx += ACCX
 
@@ -100,6 +101,8 @@ class Player(Model):
 
     def die(self):
         if self.top_y() < 0:
+            print('yay')
+            self.world.die()
             return True
         return False
 
@@ -133,6 +136,9 @@ class Item:
         self.width = width
         self.height = height
         self.is_collected = False
+        self.effect = False
+        if random() > 0.986:
+            self.effect = True
 
     def hit(self, player):
         return ((abs(self.x - player.x) < ITEM_HIT_MARGIN) and
@@ -208,9 +214,16 @@ class World:
 
     def start(self):
         self.state = World.STATE_STARTED
+        t1 = time.time()
+        return t1
 
     def freeze(self):
         self.state = World.STATE_FROZEN
+        t2 = time.time()
+        return t2
 
     def is_started(self):
         return self.state == World.STATE_STARTED
+
+    def die(self):
+        self.state = World.STATE_DEAD

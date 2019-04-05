@@ -1,10 +1,12 @@
 import arcade
 import random
 import os
+import time
 from models import World
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+SCALE = 1
 
 PLAYER_PIC = ['images/player.png',
               'images/player1.png',
@@ -17,10 +19,15 @@ PLAYER_PIC = ['images/player.png',
 
 
 class ModelSprite(arcade.Sprite):
+    DELAY = 10
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
 
         super().__init__(*args, **kwargs)
+        self.cycle = 0
+        self.delay = 0
+        self.player_sprite = arcade.Sprite(PLAYER_PIC[self.cycle], scale=SCALE)
+
 
     def sync_with_model(self):
         if self.model:
@@ -29,6 +36,18 @@ class ModelSprite(arcade.Sprite):
     def draw(self):
         self.sync_with_model()
         super().draw()
+        # self.player_sprite = arcade.Sprite(PLAYER_PIC[self.cycle], scale=SCALE)
+        # self.player_sprite.set_position(self.model.x, self.model.y)
+        # self.player_sprite.draw()
+
+    def update(self):
+        self.delay +=1
+        if self.delay == ModelSprite.DELAY:
+            self.delay = 0
+            if self.cycle != 7:
+                self.cycle += 1
+            else:
+                self.cycle = 0
 
 
 class PlayerRunWindow(arcade.Window):
@@ -40,6 +59,9 @@ class PlayerRunWindow(arcade.Window):
         self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
 
         self.cycle = 0
+
+        self.start_time = 0
+        self.end_time = 0
 
 
         for i in PLAYER_PIC:
@@ -58,62 +80,34 @@ class PlayerRunWindow(arcade.Window):
         self.item_texture = arcade.load_texture('images/item.png')
         self.platback = arcade.load_texture('images/platback1.png')
         self.background = arcade.load_texture("images/city.jpg")
-        #
-        # self.pause = False
-        # self.button_list = None
 
-    # def setup(self):
-    #     # Create your sprites and sprite lists here
-    #     self.coin_list = arcade.SpriteList()
-    #     for i in range(10):
-    #         coin = arcade.Sprite("images/coin_01.png", 0.25)
-    #         coin.center_x = random.randrange(SCREEN_WIDTH)
-    #         coin.center_y = random.randrange(SCREEN_HEIGHT)
-    #         coin.change_y = -1
-    #         self.coin_list.append(coin)
-    #
-    #     # Create our on-screen GUI buttons
-    #     self.button_list = []
-    #
-    #     play_button = StartTextButton(60, 570, self.resume_program)
-    #     self.button_list.append(play_button)
-    #
-    #     quit_button = StopTextButton(60, 515, self.pause_program)
-    #     self.button_list.append(quit_button)
+
+    def reset(self):
+        self.background = arcade.load_texture("images/city.jpg")
+        self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
+
+        self.player_sprite = ModelSprite('images/player.png',
+                                      model=self.world.player)
+        # self.player_sprite.append_texture(arcade.load_texture('images/super_dot.png'))
+
+        self.item_texture = arcade.load_texture('images/item.png')
+        # self.super_coin = arcade.load_texture('images/super_coin.png')
 
     def update(self, delta):
-        # if self.pause:
-        #     return
         self.world.update(delta)
+        self.player_sprite.update()
         if self.world.player.die():
+            self.world.die()
             self.world.freeze()
-            exit()
 
-    # def on_mouse_press(self, x, y, button, key_modifiers):
-    #     """
-    #     Called when the user presses a mouse button.
-    #     """
-    #     check_mouse_press_for_buttons(x, y, self.button_list)
-    #
-    # def on_mouse_release(self, x, y, button, key_modifiers):
-    #     """
-    #     Called when a user releases a mouse button.
-    #     """
-    #     check_mouse_release_for_buttons(x, y, self.button_list)
-    #
-    # def pause_program(self):
-    #     self.pause = True
-    #
-    # def resume_program(self):
-    #     self.pause = False
+        if self.world.state == 2:
+            if self.start_time == 0:
+                self.start_time = time.time()
+
 
 
     def draw_platforms(self, building):
         for b in building:
-            # arcade.draw_rectangle_filled(b.x + b.width // 2,
-            #                              b.y - b.height // 2,
-            #                              b.width, b.height,
-            #                              arcade.color.DARK_BROWN)
             arcade.draw_texture_rectangle(b.x + b.width // 2,
                                          b.y - b.height // 2 * 6,
                                          b.width, b.height*6,
@@ -121,10 +115,17 @@ class PlayerRunWindow(arcade.Window):
     def draw_items(self, items):
         for i in items:
             if not i.is_collected:
-                arcade.draw_texture_rectangle(i.x, i.y, i.width, i.height,
+                if i.effect != False:
+                    arcade.draw_texture_rectangle(i.x, i.y, i.width, i.height,
                                               self.item_texture)
-                # arcade.draw_texture_rectangle(i.x + 160, i.y + 160, i.width, i.height,
-                #                               self.item_texture)
+
+    def on_key_press(self, key, key_modifiers):
+        if key == arcade.key.SPACE:
+            if self.world.state == 1:
+                self.world.start()
+            self.world.on_key_press(key, key_modifiers)
+        if key == arcade.key.R:
+            self.reset()
 
     def on_draw(self, line_start=0):
         arcade.set_viewport(self.world.player.x - SCREEN_WIDTH // 2,
@@ -132,146 +133,39 @@ class PlayerRunWindow(arcade.Window):
                             0, SCREEN_HEIGHT)
 
         arcade.start_render()
-        # for button in self.button_list:
-        #     button.draw()
 
         arcade.draw_texture_rectangle(self.player_sprite.center_x, SCREEN_HEIGHT // 2,
                                         SCREEN_WIDTH*2, SCREEN_HEIGHT*1, self.background)
         self.draw_platforms(self.world.building)
 
         self.draw_items(self.world.items)
+        arcade.draw_text('PRESS SPACE TO START.', -95, self.height // 2, arcade.color.BLACK, 30, align='left', bold=True, italic=True, width=20)
+        arcade.draw_text('PRESS SPACE TO START.', -100, self.height // 2, arcade.color.BRIGHT_GREEN, 30, align='left', bold=True, italic=True, width=20)
 
         self.player_sprite.draw()
 
-        arcade.draw_text(str(self.world.score),
-                         self.world.player.x + (SCREEN_WIDTH // 2) - 100,
-                         self.height - 30,
-                         arcade.color.WHITE, 30)
+        # if PlayerRunWindow.on_key_press(self, key=arcade.key.SPACE, key_modifiers=None):
+        # arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
+        #                  self.world.player.x + (SCREEN_WIDTH // 3) - 100,
+        #                  self.height - 30,
+        #                  arcade.color.WHITE, 30)
+        print(self.world.state)
+        if self.world.state == 1:
+            return
+        if self.world.state == 3:
 
-    def on_key_press(self, key, key_modifiers):
-        if not self.world.is_started():
-            self.world.start()
-        self.world.on_key_press(key, key_modifiers)
+            if self.end_time == 0:
+                self.end_time = time.time() - self.start_time
+            arcade.draw_text(f'time: {self.end_time - self.start_time:.2f}',
+                             self.world.player.x + (SCREEN_WIDTH // 3) - 100,
+                             self.height - 30,
+                             arcade.color.WHITE, 30)
 
-# class TextButton:
-#     """ Text-based button """
-#     def __init__(self,
-#                  center_x, center_y,
-#                  width, height,
-#                  text,
-#                  font_size=18,
-#                  font_face="Arial",
-#                  face_color=arcade.color.LIGHT_GRAY,
-#                  highlight_color=arcade.color.WHITE,
-#                  shadow_color=arcade.color.GRAY,
-#                  button_height=2):
-#         self.center_x = center_x
-#         self.center_y = center_y
-#         self.width = width
-#         self.height = height
-#         self.text = text
-#         self.font_size = font_size
-#         self.font_face = font_face
-#         self.pressed = False
-#         self.face_color = face_color
-#         self.highlight_color = highlight_color
-#         self.shadow_color = shadow_color
-#         self.button_height = button_height
-#
-#     def draw(self):
-#         """ Draw the button """
-#         arcade.draw_rectangle_filled(self.center_x, self.center_y, self.width,
-#                                      self.height, self.face_color)
-#
-#         if not self.pressed:
-#             color = self.shadow_color
-#         else:
-#             color = self.highlight_color
-#
-#         # Bottom horizontal
-#         arcade.draw_line(self.center_x - self.width / 2, self.center_y - self.height / 2,
-#                          self.center_x + self.width / 2, self.center_y - self.height / 2,
-#                          color, self.button_height)
-#
-#         # Right vertical
-#         arcade.draw_line(self.center_x + self.width / 2, self.center_y - self.height / 2,
-#                          self.center_x + self.width / 2, self.center_y + self.height / 2,
-#                          color, self.button_height)
-#
-#         if not self.pressed:
-#             color = self.highlight_color
-#         else:
-#             color = self.shadow_color
-#
-#         # Top horizontal
-#         arcade.draw_line(self.center_x - self.width / 2, self.center_y + self.height / 2,
-#                          self.center_x + self.width / 2, self.center_y + self.height / 2,
-#                          color, self.button_height)
-#
-#         # Left vertical
-#         arcade.draw_line(self.center_x - self.width / 2, self.center_y - self.height / 2,
-#                          self.center_x - self.width / 2, self.center_y + self.height / 2,
-#                          color, self.button_height)
-#
-#         x = self.center_x
-#         y = self.center_y
-#         if not self.pressed:
-#             x -= self.button_height
-#             y += self.button_height
-#
-#         arcade.draw_text(self.text, x, y,
-#                          arcade.color.BLACK, font_size=self.font_size,
-#                          width=self.width, align="center",
-#                          anchor_x="center", anchor_y="center")
-#
-#     def on_press(self):
-#         self.pressed = True
-#
-#     def on_release(self):
-#         self.pressed = False
-#
-#
-# def check_mouse_press_for_buttons(x, y, button_list):
-#     """ Given an x, y, see if we need to register any button clicks. """
-#     for button in button_list:
-#         if x > button.center_x + button.width / 2:
-#             continue
-#         if x < button.center_x - button.width / 2:
-#             continue
-#         if y > button.center_y + button.height / 2:
-#             continue
-#         if y < button.center_y - button.height / 2:
-#             continue
-#         button.on_press()
-#
-#
-# def check_mouse_release_for_buttons(x, y, button_list):
-#     """ If a mouse button has been released, see if we need to process
-#         any release events. """
-#     for button in button_list:
-#         if button.pressed:
-#             button.on_release()
-
-
-# class StartTextButton(TextButton):
-#     def __init__(self, center_x, center_y, action_function):
-#         super().__init__(center_x, center_y, 100, 40, "Start", 18, "Arial")
-#         self.action_function = action_function
-#
-#     def on_release(self):
-#         super().on_release()
-#         self.action_function()
-
-# class StopTextButton(TextButton):
-#     def __init__(self, center_x, center_y, action_function):
-#         super().__init__(center_x, center_y, 100, 40, "Stop", 18, "Arial")
-#         self.action_function = action_function
-#
-#     def on_release(self):
-#         super().on_release()
-#         self.action_function()
-
-
+        else:
+            arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
+                             self.world.player.x + (SCREEN_WIDTH // 3) - 100,
+                             self.height - 30,
+                             arcade.color.WHITE, 30)
 
 if __name__ == '__main__':
     window = PlayerRunWindow(SCREEN_WIDTH, SCREEN_HEIGHT)
