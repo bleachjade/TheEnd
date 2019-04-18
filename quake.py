@@ -8,18 +8,18 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCALE = 1
 
-PLAYER_PIC = ['images/player.png',
-              'images/player1.png',
-              'images/player2.png',
-              'images/player3.png',
-              'images/player4.png',
-              'images/player5.png',
-              'images/player6.png',
-              'images/player7.png',]
+PLAYER_PIC = ['images/p8.png',
+              'images/p7.png',
+              'images/p6.png',
+              'images/p5.png',
+              'images/p4.png',
+              'images/p3.png',
+              'images/p2.png',
+              'images/p1.png']
 
 
 class ModelSprite(arcade.Sprite):
-    DELAY = 10
+    DELAY = 5
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
 
@@ -35,16 +35,16 @@ class ModelSprite(arcade.Sprite):
 
     def draw(self):
         self.sync_with_model()
-        super().draw()
-        # self.player_sprite = arcade.Sprite(PLAYER_PIC[self.cycle], scale=SCALE)
-        # self.player_sprite.set_position(self.model.x, self.model.y)
-        # self.player_sprite.draw()
+        # super().draw()
+        self.player_sprite = arcade.Sprite(PLAYER_PIC[self.cycle], scale=SCALE)
+        self.player_sprite.set_position(self.model.x, self.model.y)
+        self.player_sprite.draw()
 
     def update(self):
         self.delay +=1
         if self.delay == ModelSprite.DELAY:
             self.delay = 0
-            if self.cycle != 7:
+            if self.cycle != 3:
                 self.cycle += 1
             else:
                 self.cycle = 0
@@ -82,17 +82,17 @@ class PlayerRunWindow(arcade.Window):
         self.background = arcade.load_texture("images/city.jpg")
 
 
-    def reset(self):
-        self.background = arcade.load_texture("images/city.jpg")
-        self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
-
-        self.player_sprite = ModelSprite('images/player.png',
-                                      model=self.world.player)
-        # self.player_sprite.append_texture(arcade.load_texture('images/super_dot.png'))
-
-        self.item_texture = arcade.load_texture('images/item.png')
-        # self.super_coin = arcade.load_texture('images/super_coin.png')
-        self.start_time = 0
+    # def reset(self):
+    #     self.background = arcade.load_texture("images/city.jpg")
+    #     self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
+    #
+    #     self.player_sprite = ModelSprite('images/player.png',
+    #                                   model=self.world.player)
+    #     # self.player_sprite.append_texture(arcade.load_texture('images/super_dot.png'))
+    #
+    #     self.item_texture = arcade.load_texture('images/item.png')
+    #     # self.super_coin = arcade.load_texture('images/super_coin.png')
+    #     self.start_time = 0
 
     def update(self, delta):
         self.world.update(delta)
@@ -125,8 +125,8 @@ class PlayerRunWindow(arcade.Window):
             if self.world.state == 1:
                 self.world.start()
             self.world.on_key_press(key, key_modifiers)
-        if key == arcade.key.R:
-            self.reset()
+        if key == arcade.key.E:
+            exit()
 
     def on_draw(self, line_start=0):
         arcade.set_viewport(self.world.player.x - SCREEN_WIDTH // 2,

@@ -145,6 +145,22 @@ class Item:
         return ((abs(self.x - player.x) < ITEM_HIT_MARGIN) and
                 (abs(self.y - player.y) < ITEM_HIT_MARGIN))
 
+class Bullet:
+        """ This class represents the bullet . """
+
+        def __init__(self):
+            # Call the parent class (Sprite) constructor
+            super().__init__()
+
+            self.image = arcade.Surface([4, 10])
+            self.image.fill(arcade.color.BLACK)
+
+            self.rect = self.image.get_rect()
+
+        def update(self):
+            """ Move the bullet. """
+            self.rect.y -= 3
+
 class World:
     STATE_FROZEN = 1
     STATE_STARTED = 2
