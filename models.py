@@ -154,16 +154,16 @@ class Item:
                 (abs(self.y - player.y) < ITEM_HIT_MARGIN))
 
 class Bullet:
-    def __init__(self, world, x, y, speed=0):
+    def __init__(self, world, x, y):
         self.world = world
         self.x = x
         self.y = y
-        self.speed = 8
+        self.speed = 1
 
-    def update(self, delta):
+    def update(self):
         # for i in SCREEN_HEIGHT:
-            if (self.x < 0):
-                self.x = self.world.width - 1
+            if (self.x < self.world.player.x-400):
+                self.x = self.world.player.x+410
                 self.y = randint(50, SCREEN_HEIGHT - 50)
             self.x -= self.speed
 
@@ -207,7 +207,7 @@ class World:
         if self.state in [World.STATE_FROZEN, World.STATE_DEAD]:
             return
         self.player.update(delta)
-        self.bullet.update(delta)
+        self.bullet.update()
         self.recycle_building()
         self.collect_items()
         self.remove_old_items()

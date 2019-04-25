@@ -9,6 +9,7 @@ import re
 import numpy
 from typing import Set, List, Dict, Optional
 import pyglet
+
 # from .data import DATA_DIR, GFX_DIR, UserDataDir
 # from .gui import Menu, WindowStack,
 
@@ -25,10 +26,11 @@ PLAYER_PIC = ['images/p8.png',
               'images/p7.png',
               'images/p6.png',
               'images/p5.png',
-              'images/p4.png',
+              'images/p9.png',
               'images/p3.png',
               'images/p2.png',
               'images/p1.png']
+
 
 class Fpscounter:
     def __init__(self):
@@ -40,13 +42,13 @@ class Fpscounter:
 
     def tick(self):
         t = self.time()
-        dt = t-self.t
+        dt = t - self.t
         self.frametime.append(dt)
         self.t = t
 
     def fps(self):
         try:
-            return 60/sum(self.frametime)
+            return 60 / sum(self.frametime)
         except ZeroDivisionError:
             return 0
 
@@ -82,6 +84,29 @@ class ModelSprite(arcade.Sprite):
             else:
                 self.cycle = 0
 
+class BulletSprite(arcade.Sprite):
+    def __init__(self, *args, **kwargs):
+        self.model = kwargs.pop('model', None)
+
+        super().__init__(*args, **kwargs)
+
+    def sync_with_model(self):
+        if self.model:
+            self.set_position(self.model.x, self.model.y)
+
+    def draw(self):
+        self.sync_with_model()
+        super().draw()
+
+    def update(self):
+        self.delay += 1
+        if self.delay == ModelSprite.DELAY:
+            self.delay = 0
+            if self.cycle != 3:
+                self.cycle += 1
+            else:
+                self.cycle = 0
+
 
 class PlayerRunWindow(arcade.Window):
     def __init__(self, width, height):
@@ -90,8 +115,7 @@ class PlayerRunWindow(arcade.Window):
         arcade.set_background_color(arcade.color.BLACK)
 
         self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
-
-        self.bullet_sprite = ModelSprite('images/laser3.png', model=self.world.bullet)
+        self.bullet_sprite = BulletSprite('images/asdjsadjjsadj.png', model=self.world.bullet)
         self.set_mouse_visible(False)
 
         self.cycle = 0
@@ -102,23 +126,15 @@ class PlayerRunWindow(arcade.Window):
         self.fpscounter = Fpscounter()
         self.set_update_rate(1 / 70)
 
-
         for i in PLAYER_PIC:
             if i != 3:
-
-                self.player_sprite = ModelSprite(i,
-                                      model=self.world.player)
+                self.player_sprite = ModelSprite(i, model=self.world.player)
                 self.cycle += 1
             else:
                 self.cycle = 0
-            # if PLAYER_PIC != 3:
-            #     self.cycle += 1
-            # else:
-            #     self.cycle = 0
         self.item_texture = arcade.load_texture('images/item.png')
         self.platback = arcade.load_texture('images/platback1.png')
         self.background = arcade.load_texture("images/city.jpg")
-
 
     # def reset(self):
     #     self.background = arcade.load_texture("images/city.jpg")
@@ -145,20 +161,19 @@ class PlayerRunWindow(arcade.Window):
             if self.start_time == 0:
                 self.start_time = time.time()
 
-
-
     def draw_platforms(self, building):
         for b in building:
             arcade.draw_texture_rectangle(b.x + b.width // 2,
-                                         b.y - b.height // 2 * 6,
-                                         b.width, b.height*6,
-                                         self.platback)
+                                          b.y - b.height // 2 * 6,
+                                          b.width, b.height * 6,
+                                          self.platback)
+
     def draw_items(self, items):
         for i in items:
             if not i.is_collected:
                 if i.effect != False:
                     arcade.draw_texture_rectangle(i.x, i.y, i.width, i.height,
-                                              self.item_texture)
+                                                  self.item_texture)
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.SPACE:
@@ -178,14 +193,15 @@ class PlayerRunWindow(arcade.Window):
         arcade.start_render()
 
         arcade.draw_texture_rectangle(self.player_sprite.center_x, SCREEN_HEIGHT // 2,
-                                        SCREEN_WIDTH*2, SCREEN_HEIGHT*1, self.background)
+                                      SCREEN_WIDTH * 2, SCREEN_HEIGHT * 1, self.background)
+        self.bullet_sprite.draw()
         self.draw_platforms(self.world.building)
 
-        self.bullet_sprite.draw()
-
         self.draw_items(self.world.items)
-        arcade.draw_text('PRESS SPACE TO START.', -95, self.height // 2, arcade.color.BLACK, 30, align='left', bold=True, italic=True, width=20)
-        arcade.draw_text('PRESS SPACE TO START.', -100, self.height // 2, arcade.color.BRIGHT_GREEN, 30, align='left', bold=True, italic=True, width=20)
+        arcade.draw_text('PRESS SPACE TO START.', -95, self.height // 2, arcade.color.BLACK, 30, align='left',
+                         bold=True, italic=True, width=20)
+        arcade.draw_text('PRESS SPACE TO START.', -100, self.height // 2, arcade.color.BRIGHT_GREEN, 30, align='left',
+                         bold=True, italic=True, width=20)
 
         self.player_sprite.draw()
 
@@ -198,13 +214,15 @@ class PlayerRunWindow(arcade.Window):
         if self.world.state == 1:
             return
         elif self.world.state == 3:
-            arcade.draw_rectangle_filled(self.player_sprite.center_x, SCREEN_HEIGHT//2, 1500, 130, arcade.color.BRIGHT_GREEN)
-            arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x-190, SCREEN_HEIGHT//2, arcade.color.WHITE, 40)
+            arcade.draw_rectangle_filled(self.player_sprite.center_x, SCREEN_HEIGHT // 2, 1500, 130,
+                                         arcade.color.BRIGHT_GREEN)
+            arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x - 190,
+                             SCREEN_HEIGHT // 2, arcade.color.WHITE, 40)
 
             if self.end_time == 0:
                 self.end_time = time.time() - self.start_time
             arcade.draw_text(f'time: {self.end_time:.2f}',
-                             self.world.player.x + (SCREEN_WIDTH // 3)-100,
+                             self.world.player.x + (SCREEN_WIDTH // 3) - 100,
                              self.height - 30,
                              arcade.color.WHITE, 30)
 
@@ -219,6 +237,7 @@ class PlayerRunWindow(arcade.Window):
             self.fpscounter.tick()
             arcade.draw_text(f"fps{self.fpscounter.fps():.2f}", self.world.player.x + (SCREEN_WIDTH // 3) - 10,
                              self.height - 50, arcade.color.WHITE)
+
 
 # class MainMenu(GameMenuBase):
 #     def __init__(self, game):
