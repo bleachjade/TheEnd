@@ -2,9 +2,15 @@ import arcade.key
 import sys
 from random import randint, random
 import time
+import math
+import pyglet
+# pyglet.options['audio'] = ('openal', 'pulse', 'directsound', 'silent',)
+
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 
 GRAVITY = -1
-MAX_VX = 15
+MAX_VX = 9
 ACCX = 1
 JUMP_VY = 15
 
@@ -42,6 +48,7 @@ class Player(Model):
         if not self.is_jump:
             self.is_jump = True
             self.vy = JUMP_VY
+            arcade.sound.play_sound(self.world.jump_sound)
 
     def update(self, delta):
         self.die()
@@ -101,9 +108,10 @@ class Player(Model):
 
     def die(self):
         if self.top_y() < 0:
-            print('yay')
+            # print('yay')
             # self.world.die()
             self.world.state = 3
+            # arcade.sound.play_sound(self.world.death_sound)
             return True
         return False
 
@@ -146,20 +154,18 @@ class Item:
                 (abs(self.y - player.y) < ITEM_HIT_MARGIN))
 
 class Bullet:
-        """ This class represents the bullet . """
+    def __init__(self, world, x, y, speed=0):
+        self.world = world
+        self.x = x
+        self.y = y
+        self.speed = 8
 
-        def __init__(self):
-            # Call the parent class (Sprite) constructor
-            super().__init__()
-
-            self.image = arcade.Surface([4, 10])
-            self.image.fill(arcade.color.BLACK)
-
-            self.rect = self.image.get_rect()
-
-        def update(self):
-            """ Move the bullet. """
-            self.rect.y -= 3
+    def update(self, delta):
+        # for i in SCREEN_HEIGHT:
+            if (self.x < 0):
+                self.x = self.world.width - 1
+                self.y = randint(50, SCREEN_HEIGHT - 50)
+            self.x -= self.speed
 
 class World:
     STATE_FROZEN = 1
@@ -181,6 +187,12 @@ class World:
 
         self.status = False
 
+        self.bullet = Bullet(self, SCREEN_WIDTH - 1, randint(50, SCREEN_HEIGHT - 50))
+
+        self.jump_sound = arcade.sound.load_sound('sound/jump1.wav')
+        self.death_sound = arcade.sound.load_sound('sound/death.wav')
+        # self.bg = arcade.sound.load_sound('sound/Electronic-beat.mp3')
+
     def init_building(self):
         self.building = [
             Building(self, 0, 100, 500, 50),
@@ -195,6 +207,7 @@ class World:
         if self.state in [World.STATE_FROZEN, World.STATE_DEAD]:
             return
         self.player.update(delta)
+        self.bullet.update(delta)
         self.recycle_building()
         self.collect_items()
         self.remove_old_items()
