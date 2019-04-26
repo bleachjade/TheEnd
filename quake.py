@@ -13,8 +13,12 @@ import pyglet
 # from .data import DATA_DIR, GFX_DIR, UserDataDir
 # from .gui import Menu, WindowStack,
 
+music = arcade.sound.load_sound('sound/bgmusic1.wav')
+arcade.sound.play_sound(music)
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+SCREEN_TITLE = 'The Quake Game'
 SCALE = 1
 
 SPRITE_SCALING_LASER = 0.8
@@ -115,7 +119,7 @@ class PlayerRunWindow(arcade.Window):
         arcade.set_background_color(arcade.color.BLACK)
 
         self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.bullet_sprite = BulletSprite('images/asdjsadjjsadj.png', model=self.world.bullet)
+        self.bullet_sprite = BulletSprite('images/bullet.png', model=self.world.bullet)
         self.set_mouse_visible(False)
 
         self.cycle = 0
@@ -217,7 +221,9 @@ class PlayerRunWindow(arcade.Window):
             arcade.draw_rectangle_filled(self.player_sprite.center_x, SCREEN_HEIGHT // 2, 1500, 130,
                                          arcade.color.BRIGHT_GREEN)
             arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x - 190,
-                             SCREEN_HEIGHT // 2, arcade.color.WHITE, 40)
+                             SCREEN_HEIGHT // 1.9, arcade.color.WHITE, 40)
+            arcade.draw_text('Press [E] to exit', self.player_sprite.center_x - 190, SCREEN_HEIGHT // 2.3,
+                             arcade.color.WHITE, 40)
 
             if self.end_time == 0:
                 self.end_time = time.time() - self.start_time
@@ -227,7 +233,6 @@ class PlayerRunWindow(arcade.Window):
                              arcade.color.WHITE, 30)
 
         else:
-            # print('asbhaaj')
             arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
                              self.world.player.x + (SCREEN_WIDTH // 3) - 100,
                              self.height - 30,
