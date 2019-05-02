@@ -35,6 +35,20 @@ PLAYER_PIC = ['images/pp8.png',
               'images/pp2.png',
               'images/pp1.png']
 
+routes = {
+    'menu':0,
+    'game':1,
+    'car':2,
+    'difficult':3,
+}
+
+choices = {
+    0: 'game',
+    1: 'car',
+    2: 'difficult'
+
+}
+
 
 class Fpscounter:
     def __init__(self):
@@ -111,13 +125,46 @@ class BulletSprite(arcade.Sprite):
             else:
                 self.cycle = 0
 
+class MenuChoiceSprite(arcade.AnimatedTimeSprite):
+    def __init__(self, *args, **kwargs):
+        self.is_select = False
+
+        super().__init__(*args, **kwargs)
+
+    def select(self):
+        self.is_select = True
+
+    def unselect(self):
+        self.is_select = False
+
 
 class PlayerRunWindow(arcade.Window):
     def __init__(self, width, height):
         super().__init__(width, height)
 
+        self.current_route = routes['menu']
+        self.selecting_choice = 0
+
         arcade.set_background_color(arcade.color.BLACK)
 
+        self.menu_setup()
+        self.game_setup(width, height)
+
+    def menu_setup(self):
+        self.choice_list = arcade.SpriteList()
+
+        self.start = MenuChoiceSprite()
+        self.start.textures.append(arcade.load_texture("images/startbut.png"))
+        self.start.textures.append(arcade.load_texture("images/startbut1.png"))
+        self.start.set_texture(0)
+        self.start.texture_change_frames = 10
+
+        self.start.center_x, self.start.center_y = self.width // 2 - 400, self.height // 2 - 30
+        self.start.select()
+
+        self.choice_list.append(self.start)
+
+    def game_setup(self, width, height):
         self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.bullet_sprite = BulletSprite('images/bullet.png', model=self.world.bullet)
         self.set_mouse_visible(False)
@@ -153,7 +200,14 @@ class PlayerRunWindow(arcade.Window):
     #     self.start_time = 0
 
     def update(self, delta):
-        self.world.update(delta)
+        if self.current_route == routes['menu']:
+            for choice in self.choice_list:
+                if choice.is_select == True:
+                    choice.update()
+                    choice.update_animation()
+        elif self.current_route == routes['game']:
+            self.world.update(delta)
+        # self.world.update(delta)
         self.player_sprite.update()
 
         if self.world.player.die():
@@ -179,15 +233,6 @@ class PlayerRunWindow(arcade.Window):
                     arcade.draw_texture_rectangle(i.x, i.y, i.width, i.height,
                                                   self.item_texture)
 
-    def on_key_press(self, key, key_modifiers):
-        if key == arcade.key.SPACE:
-            # sound = arcade.load_sound('sound/jump.wav')
-            # arcade.sound.play_sound(sound)
-            if self.world.state == 1:
-                self.world.start()
-            self.world.on_key_press(key, key_modifiers)
-        if key == arcade.key.E:
-            exit()
 
     def on_draw(self, line_start=0):
         arcade.set_viewport(self.world.player.x - SCREEN_WIDTH // 2,
@@ -198,22 +243,27 @@ class PlayerRunWindow(arcade.Window):
 
         arcade.draw_texture_rectangle(self.player_sprite.center_x, SCREEN_HEIGHT // 2,
                                       SCREEN_WIDTH * 2, SCREEN_HEIGHT * 1, self.background)
+
+        if self.current_route == routes['menu']:
+            self.draw_menu()
+
+
+        elif self.current_route == routes['game']:
+            self.fpscounter.tick()
+            # self.check_state()
+
+
         self.bullet_sprite.draw()
         self.draw_platforms(self.world.building)
 
         self.draw_items(self.world.items)
-        arcade.draw_text('PRESS SPACE TO START.', -95, self.height // 2, arcade.color.BLACK, 30, align='left',
-                         bold=True, italic=True, width=20)
-        arcade.draw_text('PRESS SPACE TO START.', -100, self.height // 2, arcade.color.AMBER, 30, align='left',
-                         bold=True, italic=True, width=20)
+        arcade.draw_text('*PRESS [SPACEBAR] TO JUMP        *PRESS [E] TO EXIT', -370, self.height // 1.1, arcade.color.BLACK, 25, align='left',
+                         bold=True, italic=True, width=2000)
+        arcade.draw_text('*PRESS [SPACEBAR] TO JUMP        *PRESS [E] TO EXIT', -375, self.height // 1.1, arcade.color.AMBER, 25, align='left',
+                         bold=True, italic=True, width=2000)
 
         self.player_sprite.draw()
 
-        # if PlayerRunWindow.on_key_press(self, key=arcade.key.SPACE, key_modifiers=None):
-        # arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
-        #                  self.world.player.x + (SCREEN_WIDTH // 3) - 100,
-        #                  self.height - 30,
-        #                  arcade.color.WHITE, 30)
         print(self.world.state)
         if self.world.state == 1:
             return
@@ -237,30 +287,46 @@ class PlayerRunWindow(arcade.Window):
                              self.world.player.x + (SCREEN_WIDTH // 3) - 100,
                              self.height - 30,
                              arcade.color.WHITE, 30)
-            # if time.time() >= 5:
-            #     Player.MAX_VX = 15
             self.fpscounter.tick()
             arcade.draw_text(f"fps{self.fpscounter.fps():.2f}", self.world.player.x + (SCREEN_WIDTH // 3) - 10,
                              self.height - 50, arcade.color.WHITE)
 
+    def draw_menu(self):
+        self.choice_list.draw()
 
-# class MainMenu(GameMenuBase):
-#     def __init__(self, game):
-#         """
-#         :param Game game:
-#         """
-#         super(MainMenu, self).__init__(game=game, title="PyOverheadGame!", actions=[
-#             ("Play", self.close),
-#             ("Exit", lambda: game.confirm_action("Do you really want to exit?", game.exit))
-#         ])
-#
-# class GameMenuBase(Menu):
-#     def __init__(self, game, **kwargs):
-#         """
-#         :param Game game:
-#         """
-#         super(GameMenuBase, self).__init__(window_stack=game.window_stack, **kwargs)
-#         self.game = game
+    def update_selected_choice(self):
+        for choice in self.choice_list:
+            choice.unselect()
+            choice.set_texture(1)
+        self.choice_list[self.selecting_choice].select()
+
+    def on_key_press(self, key, key_modifiers):
+        if self.current_route == routes['menu']:
+            if key == arcade.key.DOWN:
+                if self.selecting_choice < 2:
+                    self.selecting_choice += 1
+                else:
+                    self.selecting_choice = 0
+                self.update_selected_choice()
+            elif key == arcade.key.UP:
+                if self.selecting_choice > 0:
+                    self.selecting_choice -= 1
+                else:
+                    self.selecting_choice = 2
+                self.update_selected_choice()
+            elif key == arcade.key.ENTER:
+                self.current_route = routes[choices[self.selecting_choice]]
+
+
+        elif self.current_route == routes['game']:
+
+            if key == arcade.key.SPACE:
+                if self.world.state == 1:
+                    self.world.start()
+                self.world.on_key_press(key, key_modifiers)
+            if key == arcade.key.E:
+                exit()
+
 
 if __name__ == '__main__':
     window = PlayerRunWindow(SCREEN_WIDTH, SCREEN_HEIGHT)

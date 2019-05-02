@@ -28,6 +28,17 @@ BULLET_Y_OFFSET = 23
 BULLET_MARGIN = 12
 BULLET_HIT_MARGIN = 28
 
+BACKGROUND_SPEED = 4
+
+
+class Background:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def update(self, speed, delta):
+        self.y = self.y - (BACKGROUND_SPEED)
+
 class Model:
     def __init__(self, world, x, y, angle):
         self.world = world
@@ -215,6 +226,8 @@ class World:
         self.jump_sound = arcade.sound.load_sound('sound/jump1.wav')
         self.death_sound = arcade.sound.load_sound('sound/death.wav')
         # self.bg = arcade.sound.load_sound('sound/Electronic-beat.mp3')
+
+        # self.background1 = Background(400, 300)
 
     def init_building(self):
         self.building = [
