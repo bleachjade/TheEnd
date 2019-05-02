@@ -26,14 +26,14 @@ BULLET_SPEED = 5
 
 MAX_VX = 7
 
-PLAYER_PIC = ['images/p8.png',
-              'images/p7.png',
-              'images/p6.png',
-              'images/p5.png',
-              'images/p9.png',
-              'images/p3.png',
-              'images/p2.png',
-              'images/p1.png']
+PLAYER_PIC = ['images/pp8.png',
+              'images/pp7.png',
+              'images/pp6.png',
+              'images/pp5.png',
+              'images/pp9.png',
+              'images/pp3.png',
+              'images/pp2.png',
+              'images/pp1.png']
 
 
 class Fpscounter:
@@ -138,7 +138,7 @@ class PlayerRunWindow(arcade.Window):
                 self.cycle = 0
         self.item_texture = arcade.load_texture('images/item.png')
         self.platback = arcade.load_texture('images/platback1.png')
-        self.background = arcade.load_texture("images/city.jpg")
+        self.background = arcade.load_texture("images/city2.jpg")
 
     # def reset(self):
     #     self.background = arcade.load_texture("images/city.jpg")
@@ -204,7 +204,7 @@ class PlayerRunWindow(arcade.Window):
         self.draw_items(self.world.items)
         arcade.draw_text('PRESS SPACE TO START.', -95, self.height // 2, arcade.color.BLACK, 30, align='left',
                          bold=True, italic=True, width=20)
-        arcade.draw_text('PRESS SPACE TO START.', -100, self.height // 2, arcade.color.BRIGHT_GREEN, 30, align='left',
+        arcade.draw_text('PRESS SPACE TO START.', -100, self.height // 2, arcade.color.AMBER, 30, align='left',
                          bold=True, italic=True, width=20)
 
         self.player_sprite.draw()
@@ -219,7 +219,7 @@ class PlayerRunWindow(arcade.Window):
             return
         elif self.world.state == 3:
             arcade.draw_rectangle_filled(self.player_sprite.center_x, SCREEN_HEIGHT // 2, 1500, 130,
-                                         arcade.color.BRIGHT_GREEN)
+                                         arcade.color.AMBER)
             arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x - 190,
                              SCREEN_HEIGHT // 1.9, arcade.color.WHITE, 40)
             arcade.draw_text('Press [E] to exit', self.player_sprite.center_x - 190, SCREEN_HEIGHT // 2.3,
