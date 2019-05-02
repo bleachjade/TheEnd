@@ -250,13 +250,16 @@ class PlayerRunWindow(arcade.Window):
 
         elif self.current_route == routes['game']:
             self.fpscounter.tick()
-            # self.check_state()
 
 
         self.bullet_sprite.draw()
         self.draw_platforms(self.world.building)
 
         self.draw_items(self.world.items)
+        arcade.draw_text('PRESS [ENTER] TO', -100, self.height // 1.95, arcade.color.AMBER, 20, align="left",
+                         bold=True, width=1000)
+        arcade.draw_text('PRESS [ENTER] TO', -101, self.height // 1.95, arcade.color.BROWN, 20, align="left",
+                         bold=True, width=1000)
         arcade.draw_text('*PRESS [SPACEBAR] TO JUMP        *PRESS [E] TO EXIT', -370, self.height // 1.1, arcade.color.BLACK, 25, align='left',
                          bold=True, italic=True, width=2000)
         arcade.draw_text('*PRESS [SPACEBAR] TO JUMP        *PRESS [E] TO EXIT', -375, self.height // 1.1, arcade.color.AMBER, 25, align='left',
@@ -316,13 +319,14 @@ class PlayerRunWindow(arcade.Window):
                 self.update_selected_choice()
             elif key == arcade.key.ENTER:
                 self.current_route = routes[choices[self.selecting_choice]]
+                self.world.start()
 
 
         elif self.current_route == routes['game']:
 
             if key == arcade.key.SPACE:
-                if self.world.state == 1:
-                    self.world.start()
+                # if self.world.state == 1:
+                #     self.world.start()
                 self.world.on_key_press(key, key_modifiers)
             if key == arcade.key.E:
                 exit()
