@@ -58,7 +58,7 @@ class Fpscounter:
 
 
 class ModelSprite(arcade.Sprite):
-    DELAY = 5
+    DELAY = 4
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
         super().__init__(*args, **kwargs)
@@ -80,7 +80,7 @@ class ModelSprite(arcade.Sprite):
         self.delay +=1
         if self.delay == ModelSprite.DELAY:
             self.delay = 0
-            if self.cycle != 3:
+            if self.cycle != 7:
                 self.cycle += 1
             else:
                 self.cycle = 0
@@ -119,7 +119,7 @@ class MenuChoiceSprite(arcade.AnimatedTimeSprite):
         self.is_select = False
 
 
-class PlayerRunWindow(arcade.Window):
+class JohnWickRunWindow(arcade.Window):
     def __init__(self, width, height):
         super().__init__(width, height)
 
@@ -233,6 +233,12 @@ class PlayerRunWindow(arcade.Window):
                          bold=True, italic=True, width=2000)
         arcade.draw_text('*PRESS [SPACEBAR] TO JUMP        *PRESS [E] TO EXIT', -375, self.height // 1.1, arcade.color.AMBER, 25, align='left',
                          bold=True, italic=True, width=2000)
+        arcade.draw_text(f'*YOU CAN JUMP 3 TIMES \n  IN ONE ROW', -375, self.height // 1.19,
+                         arcade.color.BLACK, 25, align='left',
+                         bold=True, italic=True, width=2000)
+        arcade.draw_text('*YOU CAN JUMP 3 TIMES \n   IN ONE ROW', -379, self.height // 1.19,
+                         arcade.color.AMBER, 25, align='left',
+                         bold=True, italic=True, width=2000)
 
         self.player_sprite.draw()
 
@@ -295,11 +301,13 @@ class PlayerRunWindow(arcade.Window):
 
             if key == arcade.key.SPACE:
                 self.world.on_key_press(key, key_modifiers)
+                # ModelSprite('images/item.png', scale=SCALE)
+
             if key == arcade.key.E:
                 exit()
 
 
 if __name__ == '__main__':
-    window = PlayerRunWindow(SCREEN_WIDTH, SCREEN_HEIGHT)
+    window = JohnWickRunWindow(SCREEN_WIDTH, SCREEN_HEIGHT)
     arcade.set_window(window)
     arcade.run()

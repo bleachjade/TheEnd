@@ -14,7 +14,7 @@ MAX_VX = 13
 ACCX = 1
 JUMP_VY = 15
 
-DOT_RADIUS = 40
+DOT_RADIUS = 44
 BUILDING_MARGIN = 5
 
 ITEM_RADIUS = 32
@@ -46,29 +46,22 @@ class Player(Model):
         self.vx = 0
         self.vy = 0
         self.is_jump = False
-
+        self.jump_count = 0
         self.platform = None
         self.jump_charge = 2
         self.status = False
 
     def jump(self):
-        if not self.building:
-            return
-        # if self.building:
-        #     print('yay')
-        #     self.jump_charge = 2
-        if not self.is_jump:
+        if self.jump_count <= 2:
             self.is_jump = True
             self.vy = JUMP_VY
+            self.jump_count += 1
 
-
-        # self.vy = JUMP_VY
         arcade.sound.play_sound(self.world.jump_sound)
 
     def update(self, delta):
         print(self.jump_charge)
         if self.building:
-            print('yay')
             self.jump_charge = 2
         self.die()
         if self.vx < MAX_VX:
@@ -83,11 +76,13 @@ class Player(Model):
             new_building = self.find_touching_building()
             if new_building:
                 self.vy = 0
+                self.jump_count = 0
                 self.set_building(new_building)
         else:
             if (self.building) and (not self.is_on_building(self.building)):
                 self.building = None
                 self.is_jump = True
+                self.jump_count = 0
                 self.vy = 0
     def top_y(self):
         return self.y + (DOT_RADIUS // 2)
@@ -266,6 +261,7 @@ class World:
             if self.player.jump_charge > 0:
                 self.player.jump()
                 self.player.jump_charge -= 1
+
 
     def start(self):
         self.state = World.STATE_STARTED
