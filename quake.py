@@ -1,29 +1,16 @@
 import arcade
 import random
-import os
 import time
-import math
 from models import World, Player, Bullet
-import sys
-import re
-import numpy
-from typing import Set, List, Dict, Optional
-import pyglet
-
-# from .data import DATA_DIR, GFX_DIR, UserDataDir
-# from .gui import Menu, WindowStack,
 
 music = arcade.sound.load_sound('sound/bgmusic1.wav')
 arcade.sound.play_sound(music)
 
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = 'The Quake Game'
 SCALE = 1
-
-SPRITE_SCALING_LASER = 0.8
 BULLET_SPEED = 5
-
 MAX_VX = 7
 
 PLAYER_PIC = ['images/pp8.png',
@@ -48,7 +35,6 @@ choices = {
     2: 'difficult'
 
 }
-
 
 class Fpscounter:
     def __init__(self):
@@ -75,12 +61,10 @@ class ModelSprite(arcade.Sprite):
     DELAY = 5
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
-
         super().__init__(*args, **kwargs)
         self.cycle = 0
         self.delay = 0
         self.player_sprite = arcade.Sprite(PLAYER_PIC[self.cycle], scale=SCALE)
-
 
     def sync_with_model(self):
         if self.model:
@@ -88,7 +72,6 @@ class ModelSprite(arcade.Sprite):
 
     def draw(self):
         self.sync_with_model()
-        # super().draw()
         self.player_sprite = arcade.Sprite(PLAYER_PIC[self.cycle], scale=SCALE)
         self.player_sprite.set_position(self.model.x, self.model.y)
         self.player_sprite.draw()
@@ -105,7 +88,6 @@ class ModelSprite(arcade.Sprite):
 class BulletSprite(arcade.Sprite):
     def __init__(self, *args, **kwargs):
         self.model = kwargs.pop('model', None)
-
         super().__init__(*args, **kwargs)
 
     def sync_with_model(self):
@@ -128,7 +110,6 @@ class BulletSprite(arcade.Sprite):
 class MenuChoiceSprite(arcade.AnimatedTimeSprite):
     def __init__(self, *args, **kwargs):
         self.is_select = False
-
         super().__init__(*args, **kwargs)
 
     def select(self):
@@ -159,7 +140,7 @@ class PlayerRunWindow(arcade.Window):
         self.start.set_texture(0)
         self.start.texture_change_frames = 10
 
-        self.start.center_x, self.start.center_y = self.width // 2 - 400, self.height // 2 - 30
+        self.start.center_x, self.start.center_y = self.width // 2 - 500, self.height // 2 - 30
         self.start.select()
 
         self.choice_list.append(self.start)
@@ -184,20 +165,8 @@ class PlayerRunWindow(arcade.Window):
             else:
                 self.cycle = 0
         self.item_texture = arcade.load_texture('images/item.png')
-        self.platback = arcade.load_texture('images/platback1.png')
-        self.background = arcade.load_texture("images/city2.jpg")
-
-    # def reset(self):
-    #     self.background = arcade.load_texture("images/city.jpg")
-    #     self.world = World(SCREEN_WIDTH, SCREEN_HEIGHT)
-    #
-    #     self.player_sprite = ModelSprite('images/player.png',
-    #                                   model=self.world.player)
-    #     # self.player_sprite.append_texture(arcade.load_texture('images/super_dot.png'))
-    #
-    #     self.item_texture = arcade.load_texture('images/item.png')
-    #     # self.super_coin = arcade.load_texture('images/super_coin.png')
-    #     self.start_time = 0
+        self.platback = arcade.load_texture('images/platback2.png')
+        self.background = arcade.load_texture("images/city.jpg")
 
     def update(self, delta):
         if self.current_route == routes['menu']:
@@ -242,7 +211,7 @@ class PlayerRunWindow(arcade.Window):
         arcade.start_render()
 
         arcade.draw_texture_rectangle(self.player_sprite.center_x, SCREEN_HEIGHT // 2,
-                                      SCREEN_WIDTH * 2, SCREEN_HEIGHT * 1, self.background)
+                                      SCREEN_WIDTH * 2.5, SCREEN_HEIGHT * 1.5, self.background)
 
         if self.current_route == routes['menu']:
             self.draw_menu()
@@ -256,9 +225,9 @@ class PlayerRunWindow(arcade.Window):
         self.draw_platforms(self.world.building)
 
         self.draw_items(self.world.items)
-        arcade.draw_text('PRESS [ENTER] TO', -100, self.height // 1.95, arcade.color.AMBER, 20, align="left",
+        arcade.draw_text('PRESS [ENTER] TO', -100, self.height // 1.95, arcade.color.BLACK, 20, align="left",
                          bold=True, width=1000)
-        arcade.draw_text('PRESS [ENTER] TO', -101, self.height // 1.95, arcade.color.BROWN, 20, align="left",
+        arcade.draw_text('PRESS [ENTER] TO', -104, self.height // 1.95, arcade.color.AMBER, 20, align="left",
                          bold=True, width=1000)
         arcade.draw_text('*PRESS [SPACEBAR] TO JUMP        *PRESS [E] TO EXIT', -370, self.height // 1.1, arcade.color.BLACK, 25, align='left',
                          bold=True, italic=True, width=2000)
@@ -267,7 +236,7 @@ class PlayerRunWindow(arcade.Window):
 
         self.player_sprite.draw()
 
-        print(self.world.state)
+        # print(self.world.state)
         if self.world.state == 1:
             return
         elif self.world.state == 3:
@@ -325,8 +294,6 @@ class PlayerRunWindow(arcade.Window):
         elif self.current_route == routes['game']:
 
             if key == arcade.key.SPACE:
-                # if self.world.state == 1:
-                #     self.world.start()
                 self.world.on_key_press(key, key_modifiers)
             if key == arcade.key.E:
                 exit()

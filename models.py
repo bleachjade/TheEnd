@@ -5,7 +5,6 @@ from crash_detect import check_crash
 import time
 import math
 import pyglet
-# pyglet.options['audio'] = ('openal', 'pulse', 'directsound', 'silent',)
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -22,12 +21,6 @@ ITEM_RADIUS = 32
 ITEM_Y_OFFSET = 25
 ITEM_MARGIN = 13
 ITEM_HIT_MARGIN = 30
-
-BULLET_RADIUS = 30
-BULLET_Y_OFFSET = 23
-BULLET_MARGIN = 12
-BULLET_HIT_MARGIN = 28
-
 BACKGROUND_SPEED = 4
 
 
@@ -55,19 +48,28 @@ class Player(Model):
         self.is_jump = False
 
         self.platform = None
-
+        self.jump_charge = 2
         self.status = False
 
     def jump(self):
         if not self.building:
             return
-
+        # if self.building:
+        #     print('yay')
+        #     self.jump_charge = 2
         if not self.is_jump:
             self.is_jump = True
             self.vy = JUMP_VY
-            arcade.sound.play_sound(self.world.jump_sound)
+
+
+        # self.vy = JUMP_VY
+        arcade.sound.play_sound(self.world.jump_sound)
 
     def update(self, delta):
+        print(self.jump_charge)
+        if self.building:
+            print('yay')
+            self.jump_charge = 2
         self.die()
         if self.vx < MAX_VX:
             self.vx += ACCX
@@ -154,14 +156,6 @@ class Building:
                               ITEM_RADIUS, ITEM_RADIUS))
             x += ITEM_MARGIN + ITEM_RADIUS
         return items
-    # def spawn_bullets(self):
-    #     bullets = []
-    #     x = self.x + BULLET_MARGIN
-    #     while x + BULLET_MARGIN <= self.right_most_x():
-    #         bullets.append(Item(x, self.y + BULLET_Y_OFFSET,
-    #                           BULLET_RADIUS, BULLET_RADIUS))
-    #         x += BULLET_MARGIN + BULLET_RADIUS
-    #     return bullets
 
 class Item:
     def __init__(self, x, y, width, height):
@@ -186,18 +180,12 @@ class Bullet:
         self.is_hit = False
         self.speed = 1
 
-    def hit(self, player):
-        return check_crash(player.x, player.y, self.x, self.y)
-
-    # def hit_bul(self, player):
-    #     return ((abs(self.x - player.x) < BULLET_HIT_MARGIN) and
-    #             (abs(self.y - player.y) < BULLET_HIT_MARGIN))
-
     def update(self):
         # for i in SCREEN_HEIGHT:
-            if (self.x < self.world.player.x-400):
+            if self.x < self.world.player.x-400:
                 self.x = self.world.player.x+420
-                self.y = randint(50, SCREEN_HEIGHT - 50)
+                # print(self.y)
+                self.y = randint(70, SCREEN_HEIGHT - 200)
             self.x -= self.speed
 
 class World:
@@ -225,18 +213,15 @@ class World:
 
         self.jump_sound = arcade.sound.load_sound('sound/jump1.wav')
         self.death_sound = arcade.sound.load_sound('sound/death.wav')
-        # self.bg = arcade.sound.load_sound('sound/Electronic-beat.mp3')
-
-        # self.background1 = Background(400, 300)
 
     def init_building(self):
         self.building = [
             Building(self, 0, 100, 500, 50),
             Building(self, 550, 150, 500, 50),
             Building(self, 1100, 100, 500, 50),
+            Building(self, 1650, 150, 500, 50),
         ]
         self.items = []
-        # self.bullets = []
         for b in self.building:
             self.items += b.spawn_items()
 
@@ -248,12 +233,9 @@ class World:
         self.recycle_building()
         self.collect_items()
         self.remove_old_items()
-        for bullet in self.bullet_list:
-            bullet.update(delta)
-            if bullet.hit(self.player):
-                self.die()
-        # self.hit_bullet()
-        # self.remove_old_bullet()
+        if check_crash(self.player.x, self.player.y, self.bullet.x, self.bullet.y) == True:
+            arcade.sound.play_sound(self.death_sound)
+            self.die()
 
     def collect_items(self):
         for i in self.items:
@@ -265,17 +247,6 @@ class World:
         if self.items[0].x >= far_x:
             return
         self.items = [i for i in self.items if i.x >= far_x]
-
-    # def hit_bullet(self):
-    #     for i in self.bullets:
-    #         if (not i.is_hit) and (i.hit_bul(self.player)):
-    #             i.is_hit = True
-    #
-    # def remove_old_bullet(self):
-    #     far_x = self.too_far_left_x()
-    #     if self.bullets[0].x >= far_x:
-    #         return
-    #     self.bullets = [i for i in self.bullets if i.x >= far_x]
 
     def too_far_left_x(self):
         return self.player.x - self.width
@@ -292,8 +263,9 @@ class World:
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.SPACE:
-            self.player.jump()
-            self.score += 1
+            if self.player.jump_charge > 0:
+                self.player.jump()
+                self.player.jump_charge -= 1
 
     def start(self):
         self.state = World.STATE_STARTED
