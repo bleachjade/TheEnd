@@ -6,7 +6,7 @@ import time
 import math
 import pyglet
 
-SCREEN_WIDTH = 800
+SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
 GRAVITY = -1
@@ -17,12 +17,7 @@ JUMP_VY = 15
 DOT_RADIUS = 44
 BUILDING_MARGIN = 5
 
-ITEM_RADIUS = 32
-ITEM_Y_OFFSET = 25
-ITEM_MARGIN = 13
-ITEM_HIT_MARGIN = 30
 BACKGROUND_SPEED = 4
-
 
 class Background:
     def __init__(self, x, y):
@@ -49,7 +44,6 @@ class Player(Model):
         self.jump_count = 0
         self.platform = None
         self.jump_charge = 2
-        self.status = False
 
     def jump(self):
         if self.jump_count <= 2:
@@ -66,7 +60,6 @@ class Player(Model):
         self.die()
         if self.vx < MAX_VX:
             self.vx += ACCX
-
         self.x += self.vx
 
         if self.is_jump:
@@ -84,6 +77,7 @@ class Player(Model):
                 self.is_jump = True
                 self.jump_count = 0
                 self.vy = 0
+
     def top_y(self):
         return self.y + (DOT_RADIUS // 2)
 
@@ -122,10 +116,7 @@ class Player(Model):
 
     def die(self):
         if self.top_y() < 0:
-            # print('yay')
-            # self.world.die()
             self.world.state = 3
-            # arcade.sound.play_sound(self.world.death_sound)
             return True
         return False
 
@@ -143,30 +134,6 @@ class Building:
     def right_most_x(self):
         return self.x + self.width
 
-    def spawn_items(self):
-        items = []
-        x = self.x + ITEM_MARGIN
-        while x + ITEM_MARGIN <= self.right_most_x():
-            items.append(Item(x, self.y + ITEM_Y_OFFSET,
-                              ITEM_RADIUS, ITEM_RADIUS))
-            x += ITEM_MARGIN + ITEM_RADIUS
-        return items
-
-class Item:
-    def __init__(self, x, y, width, height):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.is_collected = False
-        self.effect = False
-        if random() > 0.986:
-            self.effect = True
-
-    def hit(self, player):
-        return ((abs(self.x - player.x) < ITEM_HIT_MARGIN) and
-                (abs(self.y - player.y) < ITEM_HIT_MARGIN))
-
 class Bullet:
     def __init__(self, world, x, y):
         self.world = world
@@ -176,12 +143,10 @@ class Bullet:
         self.speed = 1
 
     def update(self):
-        # for i in SCREEN_HEIGHT:
-            if self.x < self.world.player.x-400:
-                self.x = self.world.player.x+420
-                # print(self.y)
-                self.y = randint(70, SCREEN_HEIGHT - 200)
-            self.x -= self.speed
+        if self.x < self.world.player.x-400:
+            self.x = self.world.player.x+420
+            self.y = randint(70, SCREEN_HEIGHT - 200)
+        self.x -= self.speed
 
 class World:
     STATE_FROZEN = 1
@@ -201,8 +166,6 @@ class World:
 
         self.state = World.STATE_FROZEN
 
-        self.status = False
-
         self.bullet = Bullet(self, SCREEN_WIDTH - 1, randint(50, SCREEN_HEIGHT - 50))
         self.bullet_list = []
 
@@ -216,9 +179,6 @@ class World:
             Building(self, 1100, 100, 500, 50),
             Building(self, 1650, 150, 500, 50),
         ]
-        self.items = []
-        for b in self.building:
-            self.items += b.spawn_items()
 
     def update(self, delta):
         if self.state in [World.STATE_FROZEN, World.STATE_DEAD]:
@@ -226,22 +186,9 @@ class World:
         self.player.update(delta)
         self.bullet.update()
         self.recycle_building()
-        self.collect_items()
-        self.remove_old_items()
         if check_crash(self.player.x, self.player.y, self.bullet.x, self.bullet.y) == True:
             arcade.sound.play_sound(self.death_sound)
             self.die()
-
-    def collect_items(self):
-        for i in self.items:
-            if (not i.is_collected) and (i.hit(self.player)):
-                i.is_collected = True
-
-    def remove_old_items(self):
-        far_x = self.too_far_left_x()
-        if self.items[0].x >= far_x:
-            return
-        self.items = [i for i in self.items if i.x >= far_x]
 
     def too_far_left_x(self):
         return self.player.x - self.width
@@ -254,7 +201,6 @@ class World:
                 last_x = max([pp.right_most_x() for pp in self.building])
                 p.x = last_x + randint(50, 200)
                 p.y = randint(100, 200)
-                self.items += p.spawn_items()
 
     def on_key_press(self, key, key_modifiers):
         if key == arcade.key.SPACE:
@@ -269,7 +215,7 @@ class World:
         return t1
 
     def freeze(self):
-        # self.state = World.STATE_FROZEN
+        self.state = World.STATE_FROZEN
         t2 = time.time()
         return t2
 

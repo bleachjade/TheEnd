@@ -10,8 +10,6 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 SCREEN_TITLE = 'The Quake Game'
 SCALE = 1
-BULLET_SPEED = 5
-MAX_VX = 7
 
 PLAYER_PIC = ['images/pp8.png',
               'images/pp7.png',
@@ -25,16 +23,8 @@ PLAYER_PIC = ['images/pp8.png',
 routes = {
     'menu':0,
     'game':1,
-    'car':2,
-    'difficult':3,
 }
-
-choices = {
-    0: 'game',
-    1: 'car',
-    2: 'difficult'
-
-}
+choices = {0: 'game'}
 
 class Fpscounter:
     def __init__(self):
@@ -164,8 +154,7 @@ class JohnWickRunWindow(arcade.Window):
                 self.cycle += 1
             else:
                 self.cycle = 0
-        self.item_texture = arcade.load_texture('images/item.png')
-        self.platback = arcade.load_texture('images/platback2.png')
+        self.platback = arcade.load_texture('images/platback2.png', scale=SCALE)
         self.background = arcade.load_texture("images/city.jpg")
 
     def update(self, delta):
@@ -176,15 +165,12 @@ class JohnWickRunWindow(arcade.Window):
                     choice.update_animation()
         elif self.current_route == routes['game']:
             self.world.update(delta)
-        # self.world.update(delta)
         self.player_sprite.update()
 
         if self.world.player.die():
             self.world.die()
-            # self.world.freeze()
 
         if self.world.state == 2:
-            # arcade.sound.play_sound(self.world.bg)
             if self.start_time == 0:
                 self.start_time = time.time()
 
@@ -194,13 +180,6 @@ class JohnWickRunWindow(arcade.Window):
                                           b.y - b.height // 2 * 6,
                                           b.width, b.height * 6,
                                           self.platback)
-
-    def draw_items(self, items):
-        for i in items:
-            if not i.is_collected:
-                if i.effect != False:
-                    arcade.draw_texture_rectangle(i.x, i.y, i.width, i.height,
-                                                  self.item_texture)
 
 
     def on_draw(self, line_start=0):
@@ -220,11 +199,9 @@ class JohnWickRunWindow(arcade.Window):
         elif self.current_route == routes['game']:
             self.fpscounter.tick()
 
-
         self.bullet_sprite.draw()
         self.draw_platforms(self.world.building)
 
-        self.draw_items(self.world.items)
         arcade.draw_text('PRESS [ENTER] TO', -100, self.height // 1.95, arcade.color.BLACK, 20, align="left",
                          bold=True, width=1000)
         arcade.draw_text('PRESS [ENTER] TO', -104, self.height // 1.95, arcade.color.AMBER, 20, align="left",
@@ -241,8 +218,6 @@ class JohnWickRunWindow(arcade.Window):
                          bold=True, italic=True, width=2000)
 
         self.player_sprite.draw()
-
-        # print(self.world.state)
         if self.world.state == 1:
             return
         elif self.world.state == 3:
@@ -250,8 +225,10 @@ class JohnWickRunWindow(arcade.Window):
                                          arcade.color.AMBER)
             arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x - 190,
                              SCREEN_HEIGHT // 1.9, arcade.color.WHITE, 40)
-            arcade.draw_text('Press [E] to exit', self.player_sprite.center_x - 190, SCREEN_HEIGHT // 2.3,
+            arcade.draw_text('Press [R] to retry', self.player_sprite.center_x - 190, SCREEN_HEIGHT // 2.3,
                              arcade.color.WHITE, 40)
+            arcade.draw_text('[E] to exit', self.player_sprite.center_x + 400, SCREEN_HEIGHT // 2.5,
+                             arcade.color.WHITE, 15)
 
             if self.end_time == 0:
                 self.end_time = time.time() - self.start_time
@@ -259,7 +236,6 @@ class JohnWickRunWindow(arcade.Window):
                              self.world.player.x + (SCREEN_WIDTH // 3) - 100,
                              self.height - 30,
                              arcade.color.WHITE, 30)
-
         else:
             arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
                              self.world.player.x + (SCREEN_WIDTH // 3) - 100,
@@ -301,8 +277,9 @@ class JohnWickRunWindow(arcade.Window):
 
             if key == arcade.key.SPACE:
                 self.world.on_key_press(key, key_modifiers)
-                # ModelSprite('images/item.png', scale=SCALE)
-
+            if key == arcade.key.R and self.world.state == World.STATE_DEAD:
+                self.game_setup(SCREEN_WIDTH, SCREEN_HEIGHT)
+                self.current_route = routes['menu']
             if key == arcade.key.E:
                 exit()
 
