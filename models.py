@@ -10,7 +10,7 @@ SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 
 GRAVITY = -1
-MAX_VX = 13
+MAX_VX = 11
 ACCX = 1
 JUMP_VY = 15
 
@@ -143,8 +143,8 @@ class Bullet:
         self.speed = 1
 
     def update(self):
-        if self.x < self.world.player.x-400:
-            self.x = self.world.player.x+420
+        if self.x < self.world.player.x-520:
+            self.x = self.world.player.x+550
             self.y = randint(70, SCREEN_HEIGHT - 200)
         self.x -= self.speed
 
@@ -169,8 +169,8 @@ class World:
         self.bullet = Bullet(self, SCREEN_WIDTH - 1, randint(50, SCREEN_HEIGHT - 50))
         self.bullet_list = []
 
-        self.jump_sound = arcade.sound.load_sound('sound/jump1.wav')
-        self.death_sound = arcade.sound.load_sound('sound/death.wav')
+        self.jump_sound = arcade.sound.load_sound('sound/jump2.wav')
+        self.death_sound = arcade.sound.load_sound('sound/fuck1.wav')
 
     def init_building(self):
         self.building = [
