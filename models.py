@@ -3,6 +3,7 @@ import sys
 from random import randint, random
 from crash_detect import check_crash
 import time
+from time import time
 import math
 import pyglet
 
@@ -172,6 +173,9 @@ class World:
         self.jump_sound = arcade.sound.load_sound('sound/jump2.wav')
         self.death_sound = arcade.sound.load_sound('sound/fuck1.wav')
 
+        self.start_time = 0
+        self.all_time = 0
+
     def init_building(self):
         self.building = [
             Building(self, 0, 100, 500, 50),
@@ -189,6 +193,8 @@ class World:
         if check_crash(self.player.x, self.player.y, self.bullet.x, self.bullet.y) == True:
             arcade.sound.play_sound(self.death_sound)
             self.die()
+        if self.state == World.STATE_STARTED:
+            self.all_time = f"{time() - self.start_time:.2f}"
 
     def too_far_left_x(self):
         return self.player.x - self.width
@@ -211,8 +217,10 @@ class World:
 
     def start(self):
         self.state = World.STATE_STARTED
-        t1 = time.time()
-        return t1
+        # t1 = time.time()
+        # return t1
+        if self.start_time == 0:
+            self.start_time = time()
 
     def freeze(self):
         self.state = World.STATE_FROZEN

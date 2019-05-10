@@ -115,6 +115,7 @@ class MyWindow(arcade.Window):
 
         self.current_route = routes['menu']
         self.selecting_choice = 0
+        self.score = []
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -221,21 +222,21 @@ class MyWindow(arcade.Window):
         if self.world.state == 1:
             return
         elif self.world.state == 3:
+            score = self.high_score()
             arcade.draw_rectangle_filled(self.player_sprite.center_x, SCREEN_HEIGHT // 2, 1500, 130,
                                          arcade.color.AMBER)
-            arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x - 190,
+            arcade.draw_text(f'Surviving time: {self.end_time:.2f}', self.player_sprite.center_x - 250,
                              SCREEN_HEIGHT // 1.9, arcade.color.WHITE, 40)
-            arcade.draw_text('Press [R] to retry', self.player_sprite.center_x - 190, SCREEN_HEIGHT // 2.3,
+            arcade.draw_text('Press [R] to retry', self.player_sprite.center_x - 230, SCREEN_HEIGHT // 2.3,
                              arcade.color.WHITE, 40)
             arcade.draw_text('[E] to exit', self.player_sprite.center_x + 400, SCREEN_HEIGHT // 2.5,
                              arcade.color.WHITE, 15)
 
             if self.end_time == 0:
                 self.end_time = time.time() - self.start_time
-            arcade.draw_text(f'time: {self.end_time:.2f}',
-                             self.world.player.x + (SCREEN_WIDTH // 3) - 100,
-                             self.height - 30,
-                             arcade.color.BLACK, 30)
+
+            arcade.draw_text(f"High score: {score} s. ", self.player_sprite.center_x +200,
+                             SCREEN_HEIGHT // 2.1, arcade.color.WHITE, 25, bold=True)
         else:
             arcade.draw_text(f'time: {time.time()-self.start_time:.2f}',
                              self.world.player.x + (SCREEN_WIDTH // 3) - 100,
@@ -253,6 +254,15 @@ class MyWindow(arcade.Window):
             choice.unselect()
             choice.set_texture(1)
         self.choice_list[self.selecting_choice].select()
+
+    def high_score(self):
+        file = open("score.txt").readline()
+        if file == "" or float(file) < float(self.world.all_time):
+            with open("score.txt", "w") as file:
+                file.write(self.world.all_time)
+        with open("score.txt", "r") as file:
+            score = file.readline()
+        return score
 
     def on_key_press(self, key, key_modifiers):
         if self.current_route == routes['menu']:
